@@ -1,0 +1,145 @@
+\documentclass{article} % For LaTeX2e
+\usepackage{cos424,times}
+\usepackage{url}
+\usepackage{graphicx}
+\usepackage{hyperref}
+\usepackage{subfig}
+
+\title{Assignment 2: Fragile Families: Identifying Early Childhood Predictors for Academic Success}
+
+
+\author{
+Aana Bansal\\
+Princeton University\\
+\texttt{aanab@princeton.edu} \\
+\And
+Sarah Varghese \\
+Princeton University \\
+\texttt{sv2@princeton.edu} \\
+}
+
+\newcommand{\fix}{\marginpar{FIX}}
+\newcommand{\new}{\marginpar{NEW}}
+
+\begin{document}
+
+\maketitle
+
+\begin{abstract}
+hi
+\end{abstract}
+
+\section{Introduction}
+
+The public school system is often cited as "a great equalizer," since children from both advantaged and disadvantaged families have access to free schooling through high school. However, study after study has shown that children from disadvantaged families consistently underperform their peers. However, there are cases where children from disadvantaged families surpass expectations. A major question of interest in education research is "What helps disadvantaged children to 'beat the odds' and succeed academically. If these factors can be identified, major steps can be taken towards building a more equitable education system. 
+
+\section{Related Work}
+In this study, we use a data set constructed through the Fragile Families and Child Wellbeing Study. Researchers followed nearly 5000 children from "at risk" families through age 15. We use the data from this study to build our models.  \cite{huq2017}. Recently, some scholars such as Malo et. al. have attempted to apply sentiment analysis to documents previously thought ?objective,? such as news articles or financial reports \cite{pmalo2009}. There has also been progress in unsupervised learning techniques for text analysis, which take advantage of topic clustering. This includes the Latent Dirichlet Allocation model which was pioneered by Blei, Ng, and Jordan and which we will examine later in this project \cite{blei2003}
+
+
+
+\section{Methods}
+We used the following classification methods. We used implementations included in the Scikit Learn Python libraries: 
+\begin{enumerate}
+	\item Multinomial Naive Bayes Classifier (NB): With Laplace smoothing \newline
+	The data indicates that a probabilistic model could work well here. This is also a generative model which may help us better understand the theory behind the LDA model. 
+	\item K-Nearest-Neighbors (KNN): K = 5 \newline
+	K-Nearest Neighbors leverages the relationship between the documents to make predictions.
+	\item Decision Tree: Depth = 60
+	Decision Trees are arguably the most easily interpretable classifier. 
+	\item Latent Dirichlet Allocation: Number of topics = 2 \newline
+	While not a classifier, the LDA technique is a predecessor to supervised LDA which can be used for classification. We implement it here to reveal additional insights about the dataset and its features which may be used to construct richer classifiers.
+\end{enumerate}
+
+\subsection{Description of Data}
+We took the data, containing 3000 reviews, from the course resources page on Piazza. We used the preprocessSentences script provided to tokenize, stem, remove stop words, and filter words that occur fewer than 5 times in the corpus, leaving us with a vocabulary of 541 words. We then converted the reviews into a bag-of-words representation. We did this for both the training and test sets. We were also provided with labels for each set of reviews. The reviews are short, generally less than 150 characters. They contain misspellings, emojis, and grammatical errors and appear to cover a variety of topics including restaurants, electronics, movies, and customer service. We divided this set into 5-folds to do cross validation for each of the classifiers, maintaining the same folds for each trial.
+
+\subsection{Hyperparameter Tuning}
+There are two hyperparameters a our 3 classifiers that we must tune: The number of neighbors to consider in KNN and the depth of our DT. To do this, we calculate the 5-fold cross validation score at a range of values and for each hyperparameter, chose the value which yields the lowest generalization error. 
+
+
+
+As the depth of our decision tree and the number of nearest neighbors increase, the confidence score peaks and then declines. This is evidence of overfitting. Confidence peaks when d = 60 in the DT model and k = 5 in the KNN model so these are the hyperparameter values we will use going forward.
+
+\subsection{Evaluation of Data}
+We performed 5-fold cross validation on the 3000 reviews for each classification method, maintaining the same folds for each classifier. We also evaluate the precision, recall, specificity, false positive rate(FPR),  and $F_1$ score for each classifier. We compare the time it takes to perform the 5-fold classification with each classifier. Below are the definitions and a summary of these metrics. They are in terms of true positives (TP), true negatives (TN), false positives (FP), and false negatives (FN). 
+
+\[ precision = \frac{TP}{TP + FP} \]
+\[ recall = \frac{TP}{TP + FN}\]
+\[ specificity = \frac{TN}{TN + FP}\]
+\[ false\ positive\ rate = 1 - specificity\]
+\[ F_{1}\  score = \frac{(2*precision*recall)}{(precision + recall)}\]
+
+\section{Results}
+\begin{table}[htb!]
+\centering
+\caption{Evaluation of Results}
+\begin{tabular}{llll}
+                    & Naive Bayes & Decision Tree & KNN    \\
+CV Score            & 0.6540      & 0.6736        & 0.5707 \\
+Precision           & 0.7887      & 0.8779        & 0.8687 \\
+Recall              & 0.7477      & 0.6233          & 0.6400 \\
+Specificity         & 0.8000         & 0.7700          & 0.9033 \\
+False Positive Rate & 0.2         & 0.2300          & 0.0967 \\
+F1 Score            & 0.7671      & 0.7320         & 0.7370 \\
+Classification Time & 0.3263      & 2.0643        & 1.3330
+\end{tabular}
+\end{table}
+
+\subsubsection*{Discussion of Results}
+In most applications, it would be worse to classify a negative review as positive, since this would cause the business to miss information that can help them improve and retain customers. Therefore, we would prefer classifiers that minimize false positives, even at the expense of higher rates of false negatives. Thus, we would prefer a classifier with high specificity. In our trials, we found that the KNN model with K = 5 yields the highest specificity (0.9003), followed by NB (0.8000).
+
+\subsection{Spotlight Classifier: K-Nearest Neighbors}
+The K-Nearest-Neighbors Classifier is a nonparametric method for classification. Given a training dataset {(x1,z1),...,(xn,zn)} and a similarity function f(x,x*) between the training x-samples and an unlabeled sample x*, the KNN Classifier takes the k-nearest or most similar elements from the training set by f(x,x*), and assigns x* the label z*, taken as the most common label of the k-nearest-neighbors. 
+
+The KNN Classifier can be easily kernalized, with f(x,x*) viewed as a k(x,x*). When understood in this sense, the k-nearest-neighbors, and thus the class z* of x*, are determined by kernel similarity and are the samples judged most similar to x* in the feature space. In its operation, the K-Nearest-Neighbors Classifier utilizes the kernel trick: it is computed using the kernel function O(n), but similarity is quantified in the high dimension feature space O(np).
+
+When we implemented the KNN Classifier, we first represented the data in bag-of-words format. In choosing our kernel k(x,x*), we decided to consider the euclidean distance between the samples x and x*. This was because our bag-of-words feature representation of each sample consisted of a vector with the number of times each word appeared in the review, and because we judged that two such vectors separated by a small euclidean distance would be two reviews with similar word distributions.
+
+We then considered each sample from the test set, found the k nearest samples according to our kernel described above, and assigned the sample the label z* representing the most common label of the k nearest neighbors. 
+
+\section{Discussion and Conclusion}
+\subsubsection*{Insights from the LDA model }
+The LDA model reveals some interesting insights about the dataset that can be used to build richer classifiers in the future. Each topic is defined as a distribution over the entire vocabulary and each review is defined as a distribution of each of the topic classes. If we let the number of topic classes = 2, we get the following results. These are the top 8 terms defining each topic class. 
+
+\begin{quote}
+Topic 0: great good phone food service work place time quality go
+\end{quote}
+\begin{quote}
+Topic 1: movie film like bad one good great work even make
+\end{quote}
+
+Topic 1's top 8 words include terms that may indicate both positive or negative sentiment and they are ranked lower than words that have no relation to sentiment at all such as "movie" and "film". This suggests that there are other features that are more dominant when comparing how similar and different reviews are. We gain some insight into what these features might be when we cluster over a greater number of topics. For example, when we cluster over 5 topics, we get the definitions below. 
+
+\begin{quote}
+Topic 0: good service food great reallity also price place nice disappoint
+\end{quote}
+\begin{quote}
+Topic 1: film would ever one recommend go place best movie worst
+\end{quote}
+\begin{quote}
+Topic 2: phone work great use good sound headset product quality batteries
+\end{quote}
+\begin{quote}
+Topic 3: movie film bad like watch character make reallity even one
+\end{quote}
+\begin{quote}
+Topic 4: time back go wast 10 minute get wait even first
+\end{quote}
+
+Here, it looks like the reviews were roughly clustered by product, not sentiment. For example, Topic 0 appears to be about restaurants, Topic 1 appears to be about movies, Topic 2 appears to be about electronics, Topic 3 again appears to be about movies, and Topic 4 seems to be about service time. Since this categorization seems to be more dominant than sentiment, an unsupervised learning algorithm alone may not be an appropriate basis for a sentiment classifier. Perhaps, a follow-up study could assess how different classifiers perform when they are trained and tested on each of these categories individually. 
+
+\subsubsection*{Insights from the DT model }
+Below is a truncated version of our DT model. We can analyze the splits to better understand what features are important. Words near the root of the decision tree yield the most information gain. We see words like "great," "love," "good," and "excel" near the top of the tree. These words are usually indicative of positive sentiment. Surprisingly, we do not see words indicative of negative sentiment near the top of the tree. 
+
+\subsubsection*{Conclusion}
+In this work, we test three classifiers to predict sentiment in short text reviews. We see that while the NB and DT models have similar confidence scores (0.6550 and 6736), the KNN model has significantly worse accuracy (0.5707). However, the KNN model does have the highest specificity (the ratio of true negatives to total negatives). For reasons discussed above, particularly for this application, we may prefer to choose a classifier with higher specificity, even at the expense of overall accuracy. 
+
+There are two methods we would like to study more going forward. One is the supervised topic clustering method proposed by Blei in 2010 \cite{blei2010} and the second is to test common classifiers (DT, KNN, NB) on the 5 smaller clusters that were produced when we used the LDA model with 5 topics. In the NB case (or any other probabilistic model), we will have P(sentiment = s | topic = k) and P(topic = k) which would allow us to compute P(sentiment = s) for each review. Finally, we would like to explore the use of other features such as review length, punctuation, and casing. 
+
+\subsubsection*{Acknowledgments}
+We would like to thank Huq and Raman for their previous work in sentiment analysis and Blei, Ng, and Jordan for their work in topic clustering. We would also like to thank our preceptor, Xiaoyan Li, and Professor, Barbara Engelhardt for their guidance. 
+
+\bibliography{ref}
+\bibliographystyle{plain}
+\end{document}
