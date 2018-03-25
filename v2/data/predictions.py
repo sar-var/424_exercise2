@@ -8,6 +8,7 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVR, SVC
 from sklearn.metrics import brier_score_loss, make_scorer
 from sklearn.gaussian_process import GaussianProcessClassifier, GaussianProcessRegressor
+from sklearn.tree import DecisionTreeRegressor
 
 NJOBS = 24
 SEED = 42
@@ -90,6 +91,11 @@ def kmeans(data):
     predictor = Predictor(regressor, data, "knn")
     predictor.predict_all()
 
+def dtree(data):
+    regressor = DecisionTreeRegressor(max_depth=3)
+    predictor = Predictor(regressor, data, "dtree")
+    predictor.predict_all()
+
 def run_all():
     d = [LassoDataImporter()]
 
@@ -100,7 +106,8 @@ def run_all():
         # basic_svm(data)
         # gaussian_process(data)
         # adaboost(data)
-        kmeans(data)
+        #kmeans(data)
+        dtree(data)
 
 
 if __name__ == '__main__':
