@@ -1,7 +1,8 @@
 import sys, time
 from predictor import Predictor
-from data import LassoDataImporter, FullDataImporter, ElasticNetDataImporter, RfeDataImporter
+from data import LassoDataImporter
 from sklearn.ensemble import RandomForestRegressor, RandomForestClassifier, AdaBoostClassifier, AdaBoostRegressor
+from sklearn.neighbors import KNeighborsRegressor
 from sklearn.linear_model import ElasticNetCV, LogisticRegressionCV
 from sklearn.model_selection import GridSearchCV
 from sklearn.svm import SVR, SVC
@@ -84,17 +85,22 @@ def gaussian_process(data):
     predictor = Predictor(regressor, classifier, data, "gp")
     predictor.predict_all()
 
+def kmeans(data):
+    regressor = KNeighborsRegressor(n_neighbors=53)
+    predictor = Predictor(regressor, data, "knn")
+    predictor.predict_all()
 
 def run_all():
     d = [LassoDataImporter()]
 
     for data in d:
         # random_forrest(data)
-        linear(data)
+        # linear(data)
         # svm_hyperparameter(data)
         # basic_svm(data)
         # gaussian_process(data)
         # adaboost(data)
+        kmeans(data)
 
 
 if __name__ == '__main__':
